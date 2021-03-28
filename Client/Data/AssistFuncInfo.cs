@@ -1,7 +1,9 @@
 namespace Client.Data
 {
-    public class AssistFunc
+    public class AssistFuncInfo
     {
+        public int Id { get; set; }
+        
         public string Name { get; set; }
 
         public string Description { get; set; }

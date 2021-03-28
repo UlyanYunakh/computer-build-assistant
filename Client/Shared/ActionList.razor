@@ -2,19 +2,25 @@
 
 <div class="container">
 
-@foreach (AssistFunc func in service.AssistFuncs)
-{
-    <div class="bg-info">
-        <div class="row">
-            <div class="col-lg-5">
-                <img src="@func.Img" alt="" width="100%">
-            </div>
-            <div class="col-lg-7">
-                <h2>@func.Name</h2>
-                <h4>@func.Description</h4>
+    @foreach (AssistFuncInfo func in service.AssistFuncInfos)
+    {
+        <div class="bg-info">
+            <div class="row">
+                <div class="col-lg-5">
+                    <img src="@func.Img" alt="" width="100%">
+                </div>
+                <div class="col-lg-7">
+                    <h2>@func.Name</h2>
+                    <h4>@func.Description</h4>
+                </div>
             </div>
         </div>
-    </div>
-}
+    }
 
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+    }
+}
