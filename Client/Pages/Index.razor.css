@@ -1,0 +1,12 @@
+.about {
+    padding-top: 100px;
+    background-color: bisque;
+}
+
+.about__text {
+    padding-left: 50px;
+}
+
+.about__img {
+    width: 100%;
+}
