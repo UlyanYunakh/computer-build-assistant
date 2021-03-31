@@ -1,26 +1,92 @@
-@inject AssistService service
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-<div class="container">
-
-    @foreach (AssistFuncInfo func in service.AssistFuncInfos)
-    {
-        <div class="bg-info">
-            <div class="row">
-                <div class="col-lg-5">
-                    <img src="@func.Img" alt="" width="100%">
-                </div>
-                <div class="col-lg-7">
-                    <h2>@func.Name</h2>
-                    <h4>@func.Description</h4>
+@if (IsReady)
+{
+    <div class="container">
+    @foreach (AssistFunc func in UserList.List)
+        {
+            var info = AssistFuncInfos.Where(i => i.Id == func.Id).FirstOrDefault();
+            <div class="">
+                <div class="row">
+                    <div class="col-lg-5">
+                        <img src="@info.Img" alt="" width="100%">
+                    </div>
+                    <div class="col-lg-7">
+                        <h2>@info.Name</h2>
+                        <h4>@info.Description</h4>
+                        <a class="btn btn-primary" href="@info.Page">Начать</a>
+                    </div>
                 </div>
             </div>
-        </div>
-    }
-
-</div>
+        }
+    </div>
+}
+else
+{
+    <p>Загрузка</p>
+}
 
 @code {
+    public List<AssistFuncInfo> AssistFuncInfos { get; set; }
+    public AssistFuncList UserList { get; set; }
+
+    public bool IsReady { get; set; } = false;
+
     protected override void OnInitialized()
     {
+        AssistFuncInfos = new List<AssistFuncInfo>();
+
+        AssistFuncInfos.Add(new AssistFuncInfo()
+        {
+            Id = 0,
+            Name = "Функция 1",
+            Description = "Описание 1",
+            Img = "../img/computer.png",
+            Page = "/func1"
+        });
+        AssistFuncInfos.Add(new AssistFuncInfo()
+        {
+            Id = 1,
+            Name = "Функция 2",
+            Description = "Описание 2",
+            Img = "../img/computer.png",
+            Page = "/func2"
+        });
+        AssistFuncInfos.Add(new AssistFuncInfo()
+        {
+            Id = 2,
+            Name = "Функция 3",
+            Description = "Описание 3",
+            Img = "../img/computer.png",
+            Page = "/func3"
+        });
+        AssistFuncInfos.Add(new AssistFuncInfo()
+        {
+            Id = 3,
+            Name = "Функция 4",
+            Description = "Описание 4",
+            Img = "../img/computer.png",
+            Page = "/func4"
+        });
+
+        UserList = new AssistFuncList();
+    }
+
+
+    protected override async void OnAfterRender(bool isFirst)
+    {
+        var UserListLocal = await localStorage.GetItemAsync<AssistFuncList>("userList");
+
+        if (UserListLocal == null)
+        {
+            UserList = new AssistFuncList();
+            await localStorage.SetItemAsync("userList", UserList);
+        }
+        else
+            UserList = UserListLocal;
+
+        IsReady = true;
+
+        StateHasChanged();
     }
 }
