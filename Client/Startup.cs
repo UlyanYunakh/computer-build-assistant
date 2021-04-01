@@ -27,8 +27,8 @@ namespace Client
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            // services.AddScoped<AssistService>();
             services.AddBlazoredLocalStorage();
+            services.AddScoped<AssistService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
