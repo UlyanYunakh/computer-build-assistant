@@ -37,9 +37,7 @@ namespace Client.Data
 
         public void UpdateList(int id)
         {
-            var item = List.Where(i => i.Id == id).FirstOrDefault();
-
-            for (int i = 0; i < List.Count; i++)
+            for (int i = 0; i < List.Count - 1; i++)
             {
                 if (List[i + 1] != null && List[i + 1].Id == id)
                 {

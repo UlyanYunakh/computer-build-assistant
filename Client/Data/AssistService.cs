@@ -8,26 +8,37 @@ namespace Client.Data
 {
     public class AssistService
     {
-        public List<AssistFuncInfo> AssistFuncInfos { get; set; }
-        public AssistFuncList UserList { get; set; }
+        private Blazored.LocalStorage.ILocalStorageService _localStorage;
 
-        public AssistService()
+        public AssistService(Blazored.LocalStorage.ILocalStorageService localStorage)
         {
-            AssistFuncInfos = new List<AssistFuncInfo>()
+            _localStorage = localStorage;
+        }
+        
+        public async Task UpdateUserInfo(int id)
+        {
+            var userListLocal = await _localStorage.GetItemAsync<AssistFuncList>("userList");
+
+            userListLocal.UpdateList(id);
+
+            await _localStorage.SetItemAsync("userList", userListLocal);
+        }
+
+        public async Task<int> FuncHint()
+        {
+            var userVisitCount = await _localStorage.GetItemAsync<int?>("userVisitCount");
+
+            if (userVisitCount >= 4)
             {
-                new AssistFuncInfo() { Id = 0, Name = "Функция 1", Description = "Описание 1", Img = "../img/computer.png"},
-                new AssistFuncInfo() { Id = 1, Name = "Функция 2", Description = "Описание 2", Img = "../img/computer.png"},
-                new AssistFuncInfo() { Id = 2, Name = "Функция 3", Description = "Описание 3", Img = "../img/computer.png"},
-                new AssistFuncInfo() { Id = 3, Name = "Функция 4", Description = "Описание 4", Img = "../img/computer.png"},
-            };
-            UserList = new AssistFuncList();
-            UserList.List = new List<AssistFunc>()
+                await _localStorage.SetItemAsync("userVisitCount", 0);
+                var userListLocal = await _localStorage.GetItemAsync<AssistFuncList>("userList");
+                var func = userListLocal.List.Last();
+                return func.Id;
+            }
+            else
             {
-                new AssistFunc() { Id = 0, UserLevel = UserLevel.New },
-                new AssistFunc() { Id = 1, UserLevel = UserLevel.New },
-                new AssistFunc() { Id = 2, UserLevel = UserLevel.New },
-                new AssistFunc() { Id = 3, UserLevel = UserLevel.New }
-            };
+                return -1;
+            }
         }
     }
 }
