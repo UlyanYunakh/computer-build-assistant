@@ -1,15 +1,14 @@
 @page "/"
+@inject NavigationManager NavigationManager
+@inject AssistService service
 
 <div class="d-flex flex-column">
 
-    <div class="about">
-        <div class="row">
-            <div class="about__text col-lg-7">
-                <h1>computer-build-assistant</h1>
-                <h3>Эта система поможет подобрать вам компаненты для вашего компьютера.</h3>
-            </div>
-            <div class="about__img col-lg-5">
-                <img src="../img/computer.png" alt="" width="100%">
+    <div class="container-fluid">
+        <div class="about">
+            <div class="about__text">
+                <div class="text__title">Computer Build Assistant</div>
+                Эта система поможет подобрать вам компаненты для вашего компьютера.
             </div>
         </div>
     </div>

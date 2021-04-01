@@ -1,0 +1,14 @@
+@page "/pickUp"
+@inject AssistService service
+@inject NavigationManager NavigationManager
+
+<h1>Функция 1</h1>
+<button class="btn btn-primary" @onclick="Method">Вернуться</button>
+
+@code {
+    private async void Method()
+    {
+        await service.UpdateUserInfo(0);
+        NavigationManager.NavigateTo("/");
+    }
+}

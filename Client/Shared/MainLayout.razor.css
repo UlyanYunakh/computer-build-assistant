@@ -1,0 +1,16 @@
+a.navbar-brand {
+    font-size: 24px;
+    margin: 0;
+    padding: 0;
+    transition: text-shadow 0.2s;
+}
+
+a.navbar-brand:hover {
+    text-shadow: 30px -8px #5B0CF9;
+}
+
+.footer {
+    background-color: #4D0099;
+    color: white;
+    padding: 20px;
+}

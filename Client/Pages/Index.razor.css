@@ -1,12 +1,14 @@
 .about {
-    padding-top: 100px;
-    background-color: bisque;
+    margin: 100px 70px;
 }
 
 .about__text {
-    padding-left: 50px;
+    font-size: 48px;
+    line-height: normal;
 }
 
-.about__img {
-    width: 100%;
+.text__title {
+    font-size: 72px;
+    font-weight: bold;
+    color: #5B0CF9;
 }

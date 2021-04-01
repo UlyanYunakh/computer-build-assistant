@@ -1,4 +1,6 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject AssistService service
+@inject NavigationManager NavigationManager
 
 @if (IsReady)
 {
@@ -6,15 +8,14 @@
     @foreach (AssistFunc func in UserList.List)
         {
             var info = AssistFuncInfos.Where(i => i.Id == func.Id).FirstOrDefault();
-            <div class="">
-                <div class="row">
-                    <div class="col-lg-5">
-                        <img src="@info.Img" alt="" width="100%">
+            <div class="func" @onclick="() => Redirect(info.Page)">
+                <div class="func__title">@info.Name</div>
+                <div class="func__info row">
+                    <div class="info__text col-lg-6">
+                        @info.Description
                     </div>
-                    <div class="col-lg-7">
-                        <h2>@info.Name</h2>
-                        <h4>@info.Description</h4>
-                        <a class="btn btn-primary" href="@info.Page">Начать</a>
+                    <div class="info__img col-lg-6">
+                        <img src="@info.Img" alt="" width="100%">
                     </div>
                 </div>
             </div>
@@ -26,11 +27,30 @@ else
     <p>Загрузка</p>
 }
 
+@if (ShowHint)
+{
+    <div class="hint">
+    <div class="hint__title">
+        Подсказка:
+        <button type="button" class="btn-close btn-close-white" @onclick="Close"></button>
+    </div>
+    <div class="hint__info">
+        Не забывайте, что у нас есть функция "@HintName".
+    </div>
+    <div class="d-grid gap-2">
+        <a href="@HintPage" class="btn btn-light btn-block">Узнать подробности</a>
+    </div>
+</div>
+}
+
 @code {
     public List<AssistFuncInfo> AssistFuncInfos { get; set; }
     public AssistFuncList UserList { get; set; }
 
     public bool IsReady { get; set; } = false;
+    public bool ShowHint { get; set; } = false;
+    public string HintName { get; set; }
+    public string HintPage { get; set; }
 
     protected override void OnInitialized()
     {
@@ -39,34 +59,37 @@ else
         AssistFuncInfos.Add(new AssistFuncInfo()
         {
             Id = 0,
-            Name = "Функция 1",
-            Description = "Описание 1",
-            Img = "../img/computer.png",
-            Page = "/func1"
+            Name = "Подбор Всех Комплектующих",
+            Description = @"Хотите подобрать комплектующие для нового компьютера? Воспользуйтесь этой функцией: укажите ваш бюджет и
+мы сделаем всё за вас!",
+            Img = "../img/pickUp.png",
+            Page = "/pickUp"
         });
         AssistFuncInfos.Add(new AssistFuncInfo()
         {
             Id = 1,
-            Name = "Функция 2",
-            Description = "Описание 2",
-            Img = "../img/computer.png",
-            Page = "/func2"
+            Name = "Подбор Комплектующих",
+            Description = @"Вам не хватает нескольких комплектующих? Выберите только необходимые комплектующие и укажите бюджет —
+остальное за нами.",
+            Img = "../img/pickUpModified.png",
+            Page = "/pickUpModified"
         });
         AssistFuncInfos.Add(new AssistFuncInfo()
         {
             Id = 2,
-            Name = "Функция 3",
-            Description = "Описание 3",
-            Img = "../img/computer.png",
-            Page = "/func3"
+            Name = "Сравнение комплектующих",
+            Description = @"Не можете определится с комплектующими? Сравните их и выберите понравившиеся!",
+            Img = "../img/compare.png",
+            Page = "/compare"
         });
         AssistFuncInfos.Add(new AssistFuncInfo()
         {
             Id = 3,
-            Name = "Функция 4",
-            Description = "Описание 4",
-            Img = "../img/computer.png",
-            Page = "/func4"
+            Name = "Сохранненые комплектующие",
+            Description = @"Просмотрите сохраненные комплектующие. Если не можете определится, то добавьте их в сравнение и
+перейдите в ""Сравнение комплектующих""",
+            Img = "../img/favorites.png",
+            Page = "/favorites"
         });
 
         UserList = new AssistFuncList();
@@ -75,18 +98,54 @@ else
 
     protected override async void OnAfterRender(bool isFirst)
     {
-        var UserListLocal = await localStorage.GetItemAsync<AssistFuncList>("userList");
-
-        if (UserListLocal == null)
+        if (isFirst)
         {
-            UserList = new AssistFuncList();
-            await localStorage.SetItemAsync("userList", UserList);
+            var UserListLocal = await localStorage.GetItemAsync<AssistFuncList>("userList");
+
+            if (UserListLocal == null)
+            {
+                UserList = new AssistFuncList();
+                await localStorage.SetItemAsync("userList", UserList);
+            }
+            else
+                UserList = UserListLocal;
+
+            var userVisitCount = await localStorage.GetItemAsync<int?>("userVisitCount");
+
+            if (userVisitCount == null)
+            {
+                await localStorage.SetItemAsync("userVisitCount", 0);
+            }
+            else
+                await localStorage.SetItemAsync("userVisitCount", ++userVisitCount);
+
+            IsReady = true;
+
+            await Hint();
+
+            StateHasChanged();
         }
-        else
-            UserList = UserListLocal;
+    }
 
-        IsReady = true;
+    private async Task Hint()
+    {
+        var id = await service.FuncHint();
 
+        if (id >= 0)
+        {
+            var func = AssistFuncInfos.Where(i => i.Id == id).FirstOrDefault();
+            HintName = func.Name;
+            HintPage = func.Page;
+            ShowHint = true;
+            StateHasChanged();
+        }
+    }
+
+    private void Close()
+    {
+        ShowHint = false;
         StateHasChanged();
     }
+
+    private void Redirect(string page) => NavigationManager.NavigateTo(page);
 }
