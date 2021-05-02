@@ -1,0 +1,96 @@
+.about {
+    margin: 70px;
+}
+
+.about__text {
+    margin: 30px auto;
+    padding: 40px;
+    font-size: 24px;
+    line-height: normal;
+    color: white;
+    background-color: #4D0099;
+}
+
+.about__title {
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.form-box {
+    max-width: 600px;
+    margin: 40px auto;
+    background-color: #A29BEF;
+}
+
+.form-box ::deep form {
+    padding: 30px 50px;
+}
+
+.form-box ::deep form label {
+    font-size: 24px;
+    color: #4C0099;
+}
+
+.form-box ::deep form input {
+    border-radius: 10px;
+    font-size: 24px;
+    -moz-appearance: textfield;
+}
+
+.form-box ::deep form input::-webkit-outer-spin-button, .form-box ::deep form input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.form-box ::deep form input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.form-box ::deep form button {
+    margin: auto;
+    font-size: 24px;
+    padding: 15px 25px;
+    color: #4C0099;
+    border: #4C0099 solid 1px;
+    border-radius: 0;
+}
+
+.hint {
+    font-size: 16px;
+    position: absolute;
+    padding: 10px;
+    max-width: 180px;
+    background-color: #FE00B7;
+    color: white;
+    right: -220px;
+}
+
+.hint-bottom {
+    bottom: 0;
+}
+
+.hint-top {
+    top: 0;
+}
+
+.hint::before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.hint-bottom::before {
+    bottom: 0;
+    left: -40px;
+    border-bottom: 20px solid #FE00B7;
+    border-left: 40px solid transparent;
+}
+
+.hint-top::before {
+    top: 0;
+    left: -40px;
+    border-top: 20px solid #FE00B7;
+    border-left: 40px solid transparent;
+}

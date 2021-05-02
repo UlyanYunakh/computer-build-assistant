@@ -1,14 +1,66 @@
 @page "/pickUp"
 @inject AssistService service
 @inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-<h1>Функция 1</h1>
-<button class="btn btn-primary" @onclick="Method">Вернуться</button>
+<div class="container-fluid">
+
+    <div class="about">
+        <div class="about__title">Подбор всех комплектующих</div>
+        <div class="row about__text">
+            <div class="col-md-8">
+                В системе описаны компонующие 7 типов. К ним относятся системный блок, материнская плата, система
+                охлаждения, центральный процессор, блок питания, оперативная память и винчестер. На основе вашего
+                буджета, подбирается подборка с наилучшими параметрами. Результат можно будет увидеть после того,
+                как вы введете денежный лимит и нажмете на кнопку.
+            </div>
+            <div class="col-md-4">
+                <img src="../img/pickUp.png" alt="" width="100%">
+            </div>
+        </div>
+    </div>
+
+    <div class="form-box">
+        <EditForm Model="@budget" OnValidSubmit="@Handle" class=" d-flex flex-column">
+
+            <div class="mb-3">
+                <label for="budget" class="form-label">Бюджет</label>
+                <div class="position-relative">
+                    <InputNumber class="form-control" min="1" id="budget" required @bind-Value="budget"></InputNumber>
+                    <div class="hint hint-bottom">
+                        Укажите денежное ограничение, чтобы не выходить за рамки бюджета
+                    </div>
+                </div>
+            </div>
+
+            <div class="position-relative mx-auto">
+                <button type="submit" class="btn position-relative">Подобрать</button>
+                <div class="hint hint-top">
+                    Нажмите на кнопку после того, как заполните форму
+                </div>
+            </div>
+
+
+        </EditForm>
+    </div>
+</div>
 
 @code {
-    private async void Method()
+    private int budget;
+
+    private async void Handle()
     {
         await service.UpdateUserInfo(0);
-        NavigationManager.NavigateTo("/");
+        NavigationManager.NavigateTo($"/pickUpResult/{budget}/1111111");
+    }
+
+    protected override async void OnAfterRender(bool isFirst)
+    {
+        if (isFirst)
+        {
+            await service.PickUpSetStorage();
+
+            StateHasChanged();
+        }
     }
 }
