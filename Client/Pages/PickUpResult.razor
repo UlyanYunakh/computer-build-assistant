@@ -1,0 +1,20 @@
+@page "/pickUpResult/{Budget}/{Select}"
+@inject NavigationManager NavigationManager
+
+<div class="container-fluid">
+    @Budget
+    @Select
+    <button class="btn" @onclick="Redirect">На главную</button>
+</div>
+
+@code{
+    [Parameter]
+    public string Budget { get; set; }
+    [Parameter]
+    public string Select { get; set; }
+
+    private void Redirect()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

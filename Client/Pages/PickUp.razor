@@ -5,39 +5,63 @@
 
 <div class="container-fluid">
 
-    <div class="about">
-        <div class="about__title">Подбор всех комплектующих</div>
-        <div class="row about__text">
-            <div class="col-md-8">
-                В системе описаны компонующие 7 типов. К ним относятся системный блок, материнская плата, система
-                охлаждения, центральный процессор, блок питания, оперативная память и винчестер. На основе вашего
-                буджета, подбирается подборка с наилучшими параметрами. Результат можно будет увидеть после того,
-                как вы введете денежный лимит и нажмете на кнопку.
-            </div>
-            <div class="col-md-4">
-                <img src="../img/pickUp.png" alt="" width="100%">
+    <div class="title">Подбор всех комплектующих
+        @if (func != null)
+        {
+            if (!aboutBlock && func.UserLevel == UserLevel.Beginner)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowAboutBlock">Показать описание</button>
+            }
+            else if (!aboutBlock && func.UserLevel == UserLevel.Pro)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowHelp">Показать помощь</button>
+            }
+        }
+    </div>
+
+
+    @if (aboutBlock)
+    {
+        <div class="about">
+            <div class="row about__text">
+                <div class="col-md-8">
+                    В системе описаны компонующие 7 типов. К ним относятся системный блок, материнская плата, система
+                    охлаждения, центральный процессор, блок питания, оперативная память и винчестер. На основе вашего
+                    буджета, подбирается подборка с наилучшими параметрами. Результат можно будет увидеть после того,
+                    как вы введете денежный лимит и нажмете на кнопку.
+                </div>
+                <div class="col-md-4">
+                    <img src="../img/pickUp.png" alt="" width="100%">
+                </div>
             </div>
         </div>
-    </div>
+    }
 
     <div class="form-box">
         <EditForm Model="@budget" OnValidSubmit="@Handle" class=" d-flex flex-column">
 
             <div class="mb-3">
-                <label for="budget" class="form-label">Бюджет</label>
+                <label for="budget" class="form-label box-label">Бюджет</label>
                 <div class="position-relative">
-                    <InputNumber class="form-control" min="1" id="budget" required @bind-Value="budget"></InputNumber>
-                    <div class="hint hint-bottom">
-                        Укажите денежное ограничение, чтобы не выходить за рамки бюджета
-                    </div>
+                    <InputNumber class="form-control box-input" min="1" id="budget" required @bind-Value="budget">1
+                    </InputNumber>
+                    @if (hints)
+                    {
+                        <div class="hint hint-bottom">
+                            Укажите денежное ограничение, чтобы не выходить за рамки бюджета
+                        </div>
+                    }
                 </div>
             </div>
 
             <div class="position-relative mx-auto">
-                <button type="submit" class="btn position-relative">Подобрать</button>
-                <div class="hint hint-top">
-                    Нажмите на кнопку после того, как заполните форму
-                </div>
+                <button type="submit" class="btn button">Подобрать</button>
+                @if (hints)
+                {
+                    <div class="hint hint-top">
+                        Нажмите на кнопку после того, как заполните форму
+                    </div>
+                }
             </div>
 
 
@@ -47,18 +71,50 @@
 
 @code {
     private int budget;
+    private bool aboutBlock;
+    private bool hints;
+
+    private AssistFunc func;
+
+    private bool isFast = true;
 
     private async void Handle()
     {
-        await service.UpdateUserInfo(0);
+        await service.UpdateAssistFunc(func, isFast);
         NavigationManager.NavigateTo($"/pickUpResult/{budget}/1111111");
+    }
+
+    private void ShowHint() => hints = true;
+
+    private void ShowAboutBlock() => aboutBlock = true;
+
+    private async void ShowHelp()
+    {
+        aboutBlock = true;
+        hints = true;
+        isFast = false;
+        await service.UpdateAssistFuncLevel(func, UserLevel.Beginner);
     }
 
     protected override async void OnAfterRender(bool isFirst)
     {
         if (isFirst)
         {
-            await service.PickUpSetStorage();
+            func = await service.GetAssistFunc(0);
+
+            StateHasChanged();
+
+            if (func.UserLevel == UserLevel.New)
+            {
+                aboutBlock = true;
+                hints = true;
+            }
+            else if (func.UserLevel == UserLevel.Beginner)
+            {
+                await Task.Delay(8000);
+                isFast = false;
+                ShowHint();
+            }
 
             StateHasChanged();
         }
