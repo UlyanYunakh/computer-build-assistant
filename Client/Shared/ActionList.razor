@@ -2,12 +2,12 @@
 @inject AssistService service
 @inject NavigationManager NavigationManager
 
-@if (IsReady)
+@if (userList != null)
 {
     <div class="container">
-    @foreach (AssistFunc func in UserList.List)
+    @foreach (AssistFunc func in userList.List)
         {
-            var info = AssistFuncInfos.Where(i => i.Id == func.Id).FirstOrDefault();
+            var info = funcInfo.Where(i => i.Id == func.Id).FirstOrDefault();
             <div class="func" @onclick="() => Redirect(info.Page)">
                 <div class="func__title">@info.Name</div>
                 <div class="func__info row">
@@ -27,7 +27,7 @@ else
     <p>Загрузка</p>
 }
 
-@if (ShowHint)
+@if (hint)
 {
     <div class="hint">
     <div class="hint__title">
@@ -35,28 +35,27 @@ else
         <button type="button" class="btn-close btn-close-white" @onclick="Close"></button>
     </div>
     <div class="hint__info">
-        Не забывайте, что у нас есть функция "@HintName".
+        Не забывайте, что у нас есть функция "@funcName".
     </div>
     <div class="d-grid gap-2">
-        <a href="@HintPage" class="btn btn-light btn-block">Узнать подробности</a>
+        <a href="@funcPage" class="btn btn-light btn-block">Узнать подробности</a>
     </div>
 </div>
 }
 
 @code {
-    public List<AssistFuncInfo> AssistFuncInfos { get; set; }
-    public AssistFuncList UserList { get; set; }
+    private List<AssistFuncInfo> funcInfo;
+    private AssistFuncList userList;
 
-    public bool IsReady { get; set; } = false;
-    public bool ShowHint { get; set; } = false;
-    public string HintName { get; set; }
-    public string HintPage { get; set; }
+    private bool hint = false;
+    private string funcName;
+    private string funcPage;
 
     protected override void OnInitialized()
     {
-        AssistFuncInfos = new List<AssistFuncInfo>();
+        funcInfo = new List<AssistFuncInfo>();
 
-        AssistFuncInfos.Add(new AssistFuncInfo()
+        funcInfo.Add(new AssistFuncInfo()
         {
             Id = 0,
             Name = "Подбор Всех Комплектующих",
@@ -65,7 +64,7 @@ else
             Img = "../img/pickUp.png",
             Page = "/pickUp"
         });
-        AssistFuncInfos.Add(new AssistFuncInfo()
+        funcInfo.Add(new AssistFuncInfo()
         {
             Id = 1,
             Name = "Подбор Комплектующих",
@@ -74,7 +73,7 @@ else
             Img = "../img/pickUpModified.png",
             Page = "/pickUpModified"
         });
-        AssistFuncInfos.Add(new AssistFuncInfo()
+        funcInfo.Add(new AssistFuncInfo()
         {
             Id = 2,
             Name = "Сравнение комплектующих",
@@ -82,7 +81,7 @@ else
             Img = "../img/compare.png",
             Page = "/compare"
         });
-        AssistFuncInfos.Add(new AssistFuncInfo()
+        funcInfo.Add(new AssistFuncInfo()
         {
             Id = 3,
             Name = "Сохранненые комплектующие",
@@ -91,8 +90,6 @@ else
             Img = "../img/favorites.png",
             Page = "/favorites"
         });
-
-        UserList = new AssistFuncList();
     }
 
 
@@ -100,26 +97,11 @@ else
     {
         if (isFirst)
         {
-            var UserListLocal = await localStorage.GetItemAsync<AssistFuncList>("userList");
+            userList = await service.GetLocalUserList();
 
-            if (UserListLocal == null)
-            {
-                UserList = new AssistFuncList();
-                await localStorage.SetItemAsync("userList", UserList);
-            }
-            else
-                UserList = UserListLocal;
+            StateHasChanged();
 
-            var userVisitCount = await localStorage.GetItemAsync<int?>("userVisitCount");
-
-            if (userVisitCount == null)
-            {
-                await localStorage.SetItemAsync("userVisitCount", 0);
-            }
-            else
-                await localStorage.SetItemAsync("userVisitCount", ++userVisitCount);
-
-            IsReady = true;
+            await service.SetUserVisitCount();
 
             await Hint();
 
@@ -133,17 +115,17 @@ else
 
         if (id >= 0)
         {
-            var func = AssistFuncInfos.Where(i => i.Id == id).FirstOrDefault();
-            HintName = func.Name;
-            HintPage = func.Page;
-            ShowHint = true;
+            var func = funcInfo.Where(i => i.Id == id).FirstOrDefault();
+            funcName = func.Name;
+            funcPage = func.Page;
+            hint = true;
             StateHasChanged();
         }
     }
 
     private void Close()
     {
-        ShowHint = false;
+        hint = false;
         StateHasChanged();
     }
 
