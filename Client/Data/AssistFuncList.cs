@@ -35,7 +35,7 @@ namespace Client.Data
             });
         }
 
-        public void UpdateList(int id)
+        public void UpdateListOrder(int id)
         {
             for (int i = 0; i < List.Count - 1; i++)
             {
@@ -47,6 +47,16 @@ namespace Client.Data
                     break;
                 }
             }
+        }
+
+        public void UpdateAssistFunc(AssistFunc func)
+        {
+            for (int i = 0; i < List.Count; i++)
+                if (func.Id == List[i].Id)
+                {
+                    List[i] = func;
+                    break;
+                }
         }
     }
 }
