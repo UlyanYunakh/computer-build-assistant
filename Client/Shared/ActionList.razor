@@ -1,6 +1,6 @@
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject User user
 @inject AssistService service
-@inject NavigationManager NavigationManager
+@inject NavigationManager navigationManager
 
 @if (userList != null)
 {
@@ -97,11 +97,11 @@ else
     {
         if (isFirst)
         {
-            userList = await service.GetLocalUserList();
+            userList = user.UserList;
 
             StateHasChanged();
 
-            await service.SetUserVisitCount();
+            await service.IncreaseUserVisitCount();
 
             await Hint();
 
@@ -111,9 +111,9 @@ else
 
     private async Task Hint()
     {
-        var id = await service.FuncHint();
+        var id = await service.GetHintId();
 
-        if (id >= 0)
+        if (id != -1)
         {
             var func = funcInfo.Where(i => i.Id == id).FirstOrDefault();
             funcName = func.Name;
@@ -129,5 +129,5 @@ else
         StateHasChanged();
     }
 
-    private void Redirect(string page) => NavigationManager.NavigateTo(page);
+    private void Redirect(string page) => navigationManager.NavigateTo(page);
 }

@@ -8,101 +8,48 @@ namespace Client.Data
 {
     public class AssistService
     {
-        private Blazored.LocalStorage.ILocalStorageService _localStorage;
+        private User _user;
 
-        public AssistService(Blazored.LocalStorage.ILocalStorageService localStorage)
+        public AssistService(User user)
         {
-            _localStorage = localStorage;
+            _user = user;
         }
-
-        public async Task<AssistFuncList> GetLocalUserList()
-        {
-            var userListLocal = await _localStorage.GetItemAsync<AssistFuncList>("userList");
-
-            if (userListLocal == null)
-            {
-                userListLocal = new AssistFuncList();
-                await SetLocalUserList(userListLocal);
-            }
-
-            return userListLocal;
-        }
-
-        private async Task SetLocalUserList(AssistFuncList userListLocal)
-            => await _localStorage.SetItemAsync("userList", userListLocal);
 
         public async Task UpdateLocalUserList(AssistFunc func)
         {
-            var userList = await GetLocalUserList();
-
-            userList.UpdateAssistFunc(func);
-
-            await SetLocalUserList(userList);
+            _user.UserList.UpdateAssistFunc(func);
+            await _user.SetLocalUserList(_user.UserList);
         }
 
         public async Task UpdateLocalUserListOrder(int id)
         {
-            var userList = await GetLocalUserList();
-
-            userList.UpdateListOrder(id);
-
-            await SetLocalUserList(userList);
+            _user.UserList.UpdateListOrder(id);
+            await _user.SetLocalUserList(_user.UserList);
         }
 
-        public async Task<AssistFunc> GetAssistFunc(int id)
-        {
-            var userList = await GetLocalUserList();
-            return userList.List.FirstOrDefault(a => a.Id == id);
-        }
+        public AssistFunc GetAssistFunc(int id)
+            => _user.UserList.List.FirstOrDefault(a => a.Id == id);
 
-        private async Task<int> GetFuncFastCount(int id)
-            => await _localStorage.GetItemAsync<int>($"func{id}FastCount");
+        public async Task IncreaseUserVisitCount()
+            => await _user.SetVisitCount(++_user.VisitCount);
 
-        private async Task<int> SetFuncFastCount(int id)
-        {
-            var count = await _localStorage.GetItemAsync<int>($"func{id}FastCount");
-
-            if (count == 0)
-                await _localStorage.SetItemAsync($"func{id}FastCount", 1);
-            else
-                await _localStorage.SetItemAsync($"func{id}FastCount", ++count);
-
-            return count;
-        }
-
-        private async Task SetFuncFastCountToZero(int id)
-            => await _localStorage.SetItemAsync($"func{id}FastCount", 0);
-
-        public async Task SetUserVisitCount()
-        {
-            var userVisitCount = await _localStorage.GetItemAsync<int>("userVisitCount");
-
-            if (userVisitCount == 0)
-            {
-                await _localStorage.SetItemAsync("userVisitCount", 1);
-            }
-            else
-                await _localStorage.SetItemAsync("userVisitCount", ++userVisitCount);
-        }
-
-        public async Task UpdateAssistFunc(AssistFunc func, bool isFast)
+        public async Task IncreaseAssistFuncLevel(AssistFunc func, bool isFast)
         {
             if (func.UserLevel == UserLevel.New)
-            {
                 func.UserLevel = UserLevel.Beginner;
-            }
-            else if (isFast)
+            else if (isFast && func.UserLevel == UserLevel.Beginner)
             {
-                if (func.UserLevel == UserLevel.Beginner)
-                    if (await SetFuncFastCount(func.Id) >= 3)
-                        func.UserLevel = UserLevel.Pro;
+                ++_user.FastCount[func.Id];
+                await _user.SetFastCount(_user.FastCount);
+                if (_user.FastCount[func.Id] >= 3)
+                    func.UserLevel = UserLevel.Pro;
             }
             else if (!isFast)
             {
-                await SetFuncFastCountToZero(func.Id);
+                _user.FastCount[func.Id] = 0;
+                await _user.SetFastCount(_user.FastCount);
             }
-
-            if (await GetFuncFastCount(func.Id) == 0)
+            if (_user.FastCount[func.Id] == 0)
                 func.UserLevel = UserLevel.Beginner;
 
             await UpdateLocalUserList(func);
@@ -113,25 +60,23 @@ namespace Client.Data
         public async Task UpdateAssistFuncLevel(AssistFunc func, UserLevel level)
         {
             func.UserLevel = level;
-
+            if (level == UserLevel.Beginner)
+            {
+                _user.FastCount[func.Id] = 0;
+                await _user.SetFastCount(_user.FastCount);
+            }
             await UpdateLocalUserList(func);
         }
 
-        public async Task<int> FuncHint()
+        public async Task<int> GetHintId()
         {
-            var userVisitCount = await _localStorage.GetItemAsync<int>("userVisitCount");
-
-            if (userVisitCount >= 6)
+            if (_user.VisitCount > 6)
             {
-                await _localStorage.SetItemAsync("userVisitCount", 0);
-                var userListLocal = await GetLocalUserList();
-                var func = userListLocal.List.Last();
-                return func.Id;
+                await _user.SetVisitCount(0);
+                return _user.UserList.List.Last().Id;
             }
             else
-            {
                 return -1;
-            }
         }
     }
 }

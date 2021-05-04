@@ -1,19 +1,77 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace Client.Data
 {
     public class User
     {
-        [Key]
-        public int Id { get; set; }
-
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
+        private Blazored.LocalStorage.ILocalStorageService _localStorage;
         public AssistFuncList UserList { get; set; }
+        public List<int> FastCount { get; set; }
+        public int? VisitCount { get; set; }
 
-        [Required]
-        public int VisitCount { get; set; }
+        public User(Blazored.LocalStorage.ILocalStorageService localStorage)
+        {
+            _localStorage = localStorage;
+            InitProperties();
+        }
+
+        private async void InitProperties()
+        {
+            await InitUserList();
+            await InitVisitCount();
+            await InitFastCount();
+        }
+
+        private async Task InitFastCount()
+        {
+            FastCount = await _localStorage.GetItemAsync<List<int>>("userFastCount");
+
+            if (FastCount == null)
+            {
+                FastCount = new List<int>();
+                foreach (AssistFunc assistFunc in UserList.List)
+                    FastCount.Add(0);
+                await SetFastCount(FastCount);
+            }
+        }
+
+        public async Task SetFastCount(List<int> fastCount)
+        {
+            FastCount = fastCount;
+            await _localStorage.SetItemAsync("userFastCount", fastCount);
+        }
+
+        private async Task InitVisitCount()
+        {
+            VisitCount = await _localStorage.GetItemAsync<int?>("userVisitCount");
+
+            if (VisitCount == null)
+            {
+                VisitCount = 0;
+                await SetVisitCount(VisitCount);
+            }
+        }
+
+        public async Task SetVisitCount(int? visitCount)
+        {
+            VisitCount = visitCount;
+            await _localStorage.SetItemAsync("userVisitCount", visitCount);
+        }
+
+        private async Task InitUserList()
+        {
+            UserList = await _localStorage.GetItemAsync<AssistFuncList>("userList");
+
+            if (UserList == null)
+                await SetLocalUserList(new AssistFuncList());
+        }
+
+        public async Task SetLocalUserList(AssistFuncList userListLocal)
+        {
+            UserList = userListLocal;
+            await _localStorage.SetItemAsync("userList", userListLocal);
+        }
     }
 }

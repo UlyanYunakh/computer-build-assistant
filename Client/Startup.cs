@@ -28,7 +28,8 @@ namespace Client
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddBlazoredLocalStorage();
-            services.AddScoped<AssistService>();
+            services.AddScoped<User>();
+            services.AddTransient<AssistService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

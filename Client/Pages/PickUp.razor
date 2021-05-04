@@ -1,7 +1,6 @@
 @page "/pickUp"
 @inject AssistService service
-@inject NavigationManager NavigationManager
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager navigationManager
 
 <div class="container-fluid">
 
@@ -80,8 +79,8 @@
 
     private async void Handle()
     {
-        await service.UpdateAssistFunc(func, isFast);
-        NavigationManager.NavigateTo($"/pickUpResult/{budget}/1111111");
+        await service.IncreaseAssistFuncLevel(func, isFast);
+        navigationManager.NavigateTo($"/pickUpResult/{budget}/1111111");
     }
 
     private void ShowHint() => hints = true;
@@ -100,7 +99,7 @@
     {
         if (isFirst)
         {
-            func = await service.GetAssistFunc(0);
+            func = service.GetAssistFunc(0);
 
             StateHasChanged();
 
