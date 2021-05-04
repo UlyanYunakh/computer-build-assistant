@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Client.Data;
 using Blazored.LocalStorage;
+using Microsoft.EntityFrameworkCore;
 
 namespace Client
 {
@@ -30,6 +31,10 @@ namespace Client
             services.AddBlazoredLocalStorage();
             services.AddScoped<User>();
             services.AddTransient<AssistService>();
+            services.AddDbContext<ComponentsContext>(options =>
+            {
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
