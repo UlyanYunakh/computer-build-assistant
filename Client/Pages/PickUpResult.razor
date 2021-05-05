@@ -8,11 +8,11 @@
     <div class="title">Ваша подборка</div>
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <ComponentsList Components=_components />
+            <ComponentsList Selection=_selection />
         </div>
         <div class="d-flex justify-content-between mb-5">
             <button class="btn button" @onclick="Redirect">Вернуться на главную</button>
-            <button class="btn button button_save" @onclick="Redirect">Сохранить подборку</button>
+            <button class="btn button button_save" @onclick="Handle">Сохранить подборку</button>
         </div>
     </div>
 </div>
@@ -23,13 +23,11 @@
     [Parameter]
     public string SelectStr { get; set; }
 
-    private List<Component> _components;
-    private int _cost;
+    private Selection _selection;
 
     protected override void OnInitialized()
     {
-        _components = GetComponents(GetSelect(SelectStr));
-        _cost = GetCost(_components);
+        _selection = GetSelection(GetComponentSelect(SelectStr));
     }
 
     private int GetCost(List<Component> components)
@@ -40,7 +38,15 @@
         return cost;
     }
 
-    private List<Component> GetComponents(List<bool> select)
+    private int GetWorth(List<Component> components)
+    {
+        int worth = 0;
+        foreach (Component component in components)
+            worth += component.Worth;
+        return worth;
+    }
+
+    private Selection GetSelection(List<bool> select)
     {
         List<Component> components = new List<Component>();
         Random rnd = new Random();
@@ -75,10 +81,15 @@
             components.Add(db.CoolingSystem.Where(c => c.Id == id).FirstOrDefault());
         }
 
-        return components;
+        Selection selection = new Selection();
+        selection.List = components;
+        selection.Cost = GetCost(components);
+        selection.Worth = GetWorth(components);
+
+        return selection;
     }
 
-    private List<bool> GetSelect(string select)
+    private List<bool> GetComponentSelect(string select)
     {
         List<bool> result = new List<bool>();
         foreach (char c in select)
@@ -89,6 +100,14 @@
                 result.Add(false);
         }
         return result;
+    }
+
+    private async Task Handle()
+    {
+        _selection.Name = $"Подборка {user.SavedCompanents.Count + 1}";
+        user.SavedCompanents.Add(_selection);
+        await user.SetSavedComponents(user.SavedCompanents);
+        Redirect();
     }
 
     private void Redirect()

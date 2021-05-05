@@ -10,6 +10,7 @@ namespace Client.Data
         public AssistFuncList UserList { get; set; }
         public List<int> FastCount { get; set; }
         public int? VisitCount { get; set; }
+        public List<Selection> SavedCompanents { get; set; }
 
         public User(Blazored.LocalStorage.ILocalStorageService localStorage)
         {
@@ -22,6 +23,24 @@ namespace Client.Data
             await InitUserList();
             await InitVisitCount();
             await InitFastCount();
+            await InitSavedComponents();
+        }
+
+        private async Task InitSavedComponents()
+        {
+            SavedCompanents = await _localStorage.GetItemAsync<List<Selection>>("userSavedComponents");
+
+            if (SavedCompanents == null)
+            {
+                SavedCompanents = new List<Selection>();
+                await SetSavedComponents(SavedCompanents);
+            }
+        }
+
+        public async Task SetSavedComponents(List<Selection> components)
+        {
+            SavedCompanents = components;
+            await _localStorage.SetItemAsync("userSavedComponents", components);
         }
 
         private async Task InitFastCount()

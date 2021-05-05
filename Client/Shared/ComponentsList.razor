@@ -1,25 +1,11 @@
-@foreach (Component component in Components)
+@foreach (Component component in Selection.List)
 {
     <ComponentView Component=component />
 }
-<div class="cost">Полная стоимость подборки: @_cost</div>
+<div class="info cost">Полная стоимость подборки: @Selection.Cost</div>
+<div class="info">Ценность подборки: @Selection.Worth</div>
 
 @code{
     [Parameter]
-    public List<Component> Components { get; set; }
-
-    private int _cost;
-
-    protected override void OnInitialized()
-    {
-        _cost = GetCost(Components);
-    }
-
-    private int GetCost(List<Component> components)
-    {
-        int cost = 0;
-        foreach (Component component in components)
-            cost += component.Cost;
-        return cost;
-    }
+    public Selection Selection { get; set; }
 }
