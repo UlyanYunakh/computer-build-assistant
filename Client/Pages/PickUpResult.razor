@@ -1,20 +1,98 @@
-@page "/pickUpResult/{Budget}/{Select}"
-@inject NavigationManager NavigationManager
+@page "/pickUpResult/{Budget}/{SelectStr}"
+@inject User user
+@inject AssistService service
+@inject ComponentsContext db
+@inject NavigationManager navigationManager
 
 <div class="container-fluid">
-    @Budget
-    @Select
-    <button class="btn" @onclick="Redirect">На главную</button>
+    <div class="title">Ваша подборка</div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <ComponentsList Components=_components />
+        </div>
+        <div class="d-flex justify-content-between mb-5">
+            <button class="btn button" @onclick="Redirect">Вернуться на главную</button>
+            <button class="btn button button_save" @onclick="Redirect">Сохранить подборку</button>
+        </div>
+    </div>
 </div>
 
 @code{
     [Parameter]
     public string Budget { get; set; }
     [Parameter]
-    public string Select { get; set; }
+    public string SelectStr { get; set; }
+
+    private List<Component> _components;
+    private int _cost;
+
+    protected override void OnInitialized()
+    {
+        _components = GetComponents(GetSelect(SelectStr));
+        _cost = GetCost(_components);
+    }
+
+    private int GetCost(List<Component> components)
+    {
+        int cost = 0;
+        foreach (Component component in components)
+            cost += component.Cost;
+        return cost;
+    }
+
+    private List<Component> GetComponents(List<bool> select)
+    {
+        List<Component> components = new List<Component>();
+        Random rnd = new Random();
+        int id = rnd.Next(0, 15);
+
+        if (select[0])
+        {
+            components.Add(db.CPU.Where(c => c.Id == id).FirstOrDefault());
+        }
+        if (select[1])
+        {
+            components.Add(db.RAM.Where(c => c.Id == id).FirstOrDefault());
+        }
+        if (select[2])
+        {
+            components.Add(db.StorageDevice.Where(c => c.Id == id).FirstOrDefault());
+        }
+        if (select[3])
+        {
+            components.Add(db.PowerSupply.Where(c => c.Id == id).FirstOrDefault());
+        }
+        if (select[4])
+        {
+            components.Add(db.Motherboard.Where(c => c.Id == id).FirstOrDefault());
+        }
+        if (select[5])
+        {
+            components.Add(db.Shell.Where(c => c.Id == id).FirstOrDefault());
+        }
+        if (select[6])
+        {
+            components.Add(db.CoolingSystem.Where(c => c.Id == id).FirstOrDefault());
+        }
+
+        return components;
+    }
+
+    private List<bool> GetSelect(string select)
+    {
+        List<bool> result = new List<bool>();
+        foreach (char c in select)
+        {
+            if (c == '1')
+                result.Add(true);
+            else if (c == '0')
+                result.Add(false);
+        }
+        return result;
+    }
 
     private void Redirect()
     {
-        NavigationManager.NavigateTo("/");
+        navigationManager.NavigateTo("/");
     }
 }
