@@ -1,0 +1,43 @@
+@page "/favorites/{Name}"
+@inject User user
+@inject NavigationManager navigationManager
+
+<div class="container-fluid">
+    <div class="title">@_selection.Name</div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <ComponentsList Selection=_selection />
+        </div>
+        <div class="d-flex justify-content-between mb-5">
+            <button class="btn button" @onclick="Redirect">Вернуться к сохраненные</button>
+            <button class="btn button button_delete" @onclick="Handle">Удалить из сохраненные</button>
+        </div>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public string Name { get; set; }
+
+    private Selection _selection;
+
+    protected override void OnInitialized()
+    {
+        _selection = user.SavedCompanents.Where(c => c.Name == Name).FirstOrDefault();
+    }
+
+    private void Handle()
+    {
+        for(int i = 0; i < user.SavedCompanents.Count; i++)
+        {
+            if(user.SavedCompanents[i].Name == _selection.Name)
+                user.SavedCompanents.Remove(_selection);
+        }
+        Redirect();
+    }
+
+    private void Redirect()
+    {
+        navigationManager.NavigateTo("/favorites");
+    }
+}

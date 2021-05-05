@@ -1,14 +1,118 @@
 @page "/favorites"
 @inject AssistService service
-@inject NavigationManager NavigationManager
+@inject User user
+@inject NavigationManager navigationManager
 
-<h1>Функция 4</h1>
-<button class="btn btn-primary" @onclick="Method">Вернуться</button>
+
+<div class="container-fluid">
+    <div class="title">
+        Сохраненные комплектующие
+        @if (_func != null)
+        {
+            <span class="position-relative">
+                @if (_hints && _aboutBlock && _saved.Count == 0)
+                {
+                    <div class="hint hint-bottom">
+                        Сохраните подборку, после чего вернитесь на эту страницу
+                    </div>
+                }
+            </span>
+            if (!_aboutBlock && _func.UserLevel == UserLevel.Beginner)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowAboutBlock">Показать описание</button>
+            }
+            else if (!_aboutBlock && _func.UserLevel == UserLevel.Pro)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowHelp">Показать помощь</button>
+            }
+        }
+    </div>
+    @if (_aboutBlock)
+    {
+        <div class="about">
+            <div class="row about__text">
+                <div class="col-md-8">
+                    Ваши сохраненные комплектующие будут храниться тут. Каждую предложенную подборку вы можете сохранить,
+                    воспользовавшись кнопкой на странице с результатом. После сохранения вы сможете найти подборку тут и
+                    просмотреть её. Так вы можете сравнивать сохраненные подборки. Для этого воспользуйтесь соответствующей
+                    функцией.
+                </div>
+                <div class="col-md-4">
+                    <img src="../img/favorites.png" alt="" width="100%">
+                </div>
+            </div>
+        </div>
+    }
+    @if (_saved.Count != 0)
+    {
+        <div class="row m-5">
+            <div class="title_no-margin">
+                Ваши подборки:
+                <span class="position-relative">
+                    @if (_hints)
+                    {
+                        <div class="hint hint-bottom">
+                            Для просмотра выберите подборку
+                        </div>
+                    }
+                </span>
+            </div>
+            @foreach (Selection selection in _saved)
+            {
+                <div class="col-md-4">
+                    <SelectionInfo Selection=selection Func=_func IsFast=_isFast />
+                </div>
+            }
+        </div>
+    }
+</div>
 
 @code {
-    private async void Method()
+    private List<Selection> _saved;
+    private bool _hints;
+    private bool _aboutBlock;
+    private bool _isFast = true;
+    private AssistFunc _func;
+
+    protected override async void OnInitialized()
     {
+        _saved = user.SavedCompanents;
         await service.UpdateLocalUserListOrder(3);
-        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async void OnAfterRender(bool isFirst)
+    {
+        if (isFirst)
+        {
+            _func = service.GetAssistFunc(3);
+
+            StateHasChanged();
+
+            if (_func.UserLevel == UserLevel.New)
+            {
+                _aboutBlock = true;
+                _hints = true;
+            }
+            else if (_func.UserLevel == UserLevel.Beginner)
+            {
+                await Task.Delay(10000);
+                _isFast = false;
+                ShowHint();
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private void ShowHint() => _hints = true;
+
+    private void ShowAboutBlock() => _aboutBlock = true;
+
+    private async void ShowHelp()
+    {
+        _aboutBlock = true;
+        _hints = true;
+        _isFast = false;
+        await service.UpdateAssistFuncLevel(_func, UserLevel.Beginner);
     }
 }
