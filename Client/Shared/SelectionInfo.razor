@@ -1,7 +1,4 @@
-@inject NavigationManager navigationManager
-@inject AssistService service
-
-<div class="selection" @onclick="Handle">
+<div class="selection">
     <div class="selection__title">
         @Selection.Name
     </div>
@@ -18,14 +15,4 @@
 @code{
     [Parameter]
     public Selection Selection { get; set; }
-    [Parameter]
-    public AssistFunc Func { get; set; }
-    [Parameter]
-    public bool IsFast { get; set; }
-
-    private async void Handle()
-    {
-        await service.IncreaseAssistFuncLevel(Func, IsFast);
-        navigationManager.NavigateTo($"/favorites/{Selection.Name}");
-    }
 }

@@ -59,8 +59,8 @@
             </div>
             @foreach (Selection selection in _saved)
             {
-                <div class="col-md-4">
-                    <SelectionInfo Selection=selection Func=_func IsFast=_isFast />
+                <div class="col-md-4" @onclick="() => Handle(selection)">
+                    <SelectionInfo Selection=selection />
                 </div>
             }
         </div>
@@ -102,6 +102,12 @@
 
             StateHasChanged();
         }
+    }
+
+    private async void Handle(Selection selection)
+    {
+        await service.IncreaseAssistFuncLevel(_func, _isFast);
+        navigationManager.NavigateTo($"/favorites/{selection.Name}");
     }
 
     private void ShowHint() => _hints = true;
