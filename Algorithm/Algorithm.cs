@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Knapsack_Problem__cmd_
+namespace Algorithm
 {
     public class Algorithm
     {

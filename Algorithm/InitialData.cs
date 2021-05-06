@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Knapsack_Problem__cmd_
+namespace Algorithm
 {
     public class InitialData
     {
