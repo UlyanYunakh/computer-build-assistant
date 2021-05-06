@@ -1,11 +1,12 @@
 @page "/pickUpResult/{Budget}/{SelectStr}"
+@using Algorithm
 @inject User user
 @inject AssistService service
 @inject ComponentsContext db
 @inject NavigationManager navigationManager
 
 <div class="container-fluid">
-    <div class="title">Ваша подборка</div>
+    <div class="title">Ваша подборка: @_budget</div>
     <div class="row">
         <div class="col-md-8 offset-md-2">
             <ComponentsList Selection=_selection />
@@ -23,10 +24,12 @@
     [Parameter]
     public string SelectStr { get; set; }
 
+    private int _budget;
     private Selection _selection;
 
     protected override void OnInitialized()
     {
+        _budget = GetBudget(Budget);
         _selection = GetSelection(GetComponentSelect(SelectStr));
     }
 
@@ -48,38 +51,14 @@
 
     private Selection GetSelection(List<bool> select)
     {
-        List<Component> components = new List<Component>();
-        Random rnd = new Random();
-        int id = rnd.Next(0, 15);
+        Algorithm algorithm = new Algorithm();
+        algorithm.Capacity = GetBudget(Budget);
+        algorithm.MaxItemCost = 3000;
+        algorithm.Data = GetInitialData();
+        algorithm.Markers = GetComponentSelect(SelectStr).ToArray();
 
-        if (select[0])
-        {
-            components.Add(db.CPU.Where(c => c.Id == id).FirstOrDefault());
-        }
-        if (select[1])
-        {
-            components.Add(db.RAM.Where(c => c.Id == id).FirstOrDefault());
-        }
-        if (select[2])
-        {
-            components.Add(db.StorageDevice.Where(c => c.Id == id).FirstOrDefault());
-        }
-        if (select[3])
-        {
-            components.Add(db.PowerSupply.Where(c => c.Id == id).FirstOrDefault());
-        }
-        if (select[4])
-        {
-            components.Add(db.Motherboard.Where(c => c.Id == id).FirstOrDefault());
-        }
-        if (select[5])
-        {
-            components.Add(db.Shell.Where(c => c.Id == id).FirstOrDefault());
-        }
-        if (select[6])
-        {
-            components.Add(db.CoolingSystem.Where(c => c.Id == id).FirstOrDefault());
-        }
+        List<int> idSet = algorithm.Start();
+        List<Component> components = GetComponents(idSet);
 
         Selection selection = new Selection();
         selection.List = components;
@@ -87,6 +66,78 @@
         selection.Worth = GetWorth(components);
 
         return selection;
+    }
+
+    private List<Component> GetComponents(List<int> idSet)
+    {
+        List<Component> components = new List<Component>();
+
+        if(idSet[0] != -1)
+            components.Add(db.CPU.Where(c => c.Id == idSet[0]).FirstOrDefault());
+
+        if(idSet[1] != -1)
+            components.Add(db.RAM.Where(c => c.Id == idSet[1]).FirstOrDefault());
+
+        if(idSet[2] != -1)
+            components.Add(db.StorageDevice.Where(c => c.Id == idSet[2]).FirstOrDefault());
+
+        if(idSet[3] != -1)
+            components.Add(db.PowerSupply.Where(c => c.Id == idSet[3]).FirstOrDefault());
+
+        if(idSet[4] != -1)
+            components.Add(db.Motherboard.Where(c => c.Id == idSet[4]).FirstOrDefault());
+
+        if(idSet[5] != -1)
+            components.Add(db.Shell.Where(c => c.Id == idSet[5]).FirstOrDefault());
+
+        if(idSet[6] != -1)
+            components.Add(db.CoolingSystem.Where(c => c.Id == idSet[6]).FirstOrDefault());
+
+        return components;
+    }
+
+    private InitialData GetInitialData()
+    {
+        InitialData data = new InitialData();
+
+        data.Category.Add(GetItems(db.CPU));
+        data.Category.Add(GetItems(db.RAM));
+        data.Category.Add(GetItems(db.StorageDevice));
+        data.Category.Add(GetItems(db.PowerSupply));
+        data.Category.Add(GetItems(db.Motherboard));
+        data.Category.Add(GetItems(db.Shell));
+        data.Category.Add(GetItems(db.CoolingSystem));
+
+        return data;
+    }
+
+    private List<Item> GetItems(IEnumerable<Component> set)
+    {
+        List<Item> items = new List<Item>();
+        foreach (Component component in set)
+        {
+            Item item = new Item()
+            {
+                Id = component.Id,
+                Cost = component.Cost,
+                Worth = component.Worth
+            };
+            items.Add(item);
+        }
+
+        return items;
+    }
+
+    private int GetBudget(string budgetStr)
+    {
+        int budget = 0;
+        try
+        {
+            budget = Convert.ToInt32(budgetStr);
+        }
+        catch { }
+
+        return budget;
     }
 
     private List<bool> GetComponentSelect(string select)

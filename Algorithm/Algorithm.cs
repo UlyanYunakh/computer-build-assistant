@@ -6,8 +6,9 @@ namespace Algorithm
     public class Algorithm
     {
         public InitialData Data { get; set; }
-        public int MaxPop { get; set; } = 50;
+        public bool[] Markers { get; set; }
         public int MaxItemCost { get; set; } = 100;
+        public int MaxPop { get; set; } = 50;
         public int CategoriesCount { get; set; } = 7;
         public int Capacity
         {
@@ -22,7 +23,6 @@ namespace Algorithm
         }
 
         private int _capacity = 0;
-        private int _maxItemWorth = 100;
 
         private int _iterationCount = 500;
         private double _crossProb = 0.3;
@@ -32,7 +32,6 @@ namespace Algorithm
         private Chromosome[] _currPopulation;
         private Chromosome[] _nextPopulation;
 
-        public bool[] Markers { get; set; }
 
         static Random rnd;
 
@@ -42,7 +41,7 @@ namespace Algorithm
             rnd = new Random();
         }
 
-        public List<string> Start()
+        public List<int> Start()
         {
             if (Markers == null)
                 return null;
@@ -122,7 +121,7 @@ namespace Algorithm
                 for (int i = 0; i < _currPopulation.Length; i++)         //замена старого поколения на новое
                     _currPopulation[i] = _nextPopulation[i];
             }
-            return GetBestAnswer();
+            return _bestChromosome.Genes;
         }
 
         private void Mutate(ref Chromosome chromosome, double probability)      //мутация
@@ -193,15 +192,13 @@ namespace Algorithm
         {
             double sum = 0;
             double capacitySum = 0;
-            int index;
-            List<Item> category;
             for (int i = 0; i < chromosome.Genes.Count; i++)
             {
-                category = Data.Category[i];
-                index = chromosome.Genes[i];
+                List<Item> category = Data.Category[i];
+                int index = chromosome.Genes[i];
                 if (index >= 0)
                 {
-                    sum += category[index].Worth * (1 - category[index].Cost / MaxItemCost);
+                    sum += category[index].Worth * Math.Sqrt((1 - category[index].Cost / MaxItemCost));
                     capacitySum += category[index].Cost;
                 }
             }
@@ -243,19 +240,19 @@ namespace Algorithm
             return true;
         }
 
-        public List<string> GetBestAnswer()
-        {
-            List<string> answer = new List<string>();
-            int i = 0;
-            foreach (int index in _bestChromosome.Genes)
-            {
-                if (index >= 0)
-                    answer.Add(Data.Category[i][index].Id);
-                else
-                    answer.Add("-1");
-                i++;
-            }
-            return answer;
-        }
+        // public List<string> GetBestAnswer()
+        // {
+        //     List<string> answer = new List<string>();
+        //     int i = 0;
+        //     foreach (int index in _bestChromosome.Genes)
+        //     {
+        //         if (index >= 0)
+        //             answer.Add(Data.Category[i][index].Id);
+        //         else
+        //             answer.Add("-1");
+        //         i++;
+        //     }
+        //     return answer;
+        // }
     }
 }

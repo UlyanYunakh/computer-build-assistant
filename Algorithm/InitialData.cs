@@ -8,6 +8,6 @@ namespace Algorithm
 {
     public class InitialData
     {
-        public List<List<Item>> Category { get; set; }
+        public List<List<Item>> Category { get; set; } = new List<List<Item>>();
     }
 }

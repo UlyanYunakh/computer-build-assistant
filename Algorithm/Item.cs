@@ -8,7 +8,7 @@ namespace Algorithm
 {
     public class Item
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public int Cost { get; set; }
         public int Worth { get; set; }
     }
