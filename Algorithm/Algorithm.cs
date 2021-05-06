@@ -5,153 +5,122 @@ namespace Knapsack_Problem__cmd_
 {
     public class Algorithm
     {
-        int capacity;
-        
-        Chromosome BestChromosome;
-
-        static int MAX_POP = 50;
-        static int MAX_ITEM_COST = 100;
-        static int MAX_ITEM_WORTH = 100;
-        static int MIN_CAPACITY = 1;
-        static int CATEGORIES_COUNT = 7;
-
-        static int ITERATION_COUNT = 500;
-
-        static double CROSSOVER_PROPOBILITY = 0.3;
-        static double MUTATE_PROPOBILITY = 0.01;
-
-        Chromosome[] currPopulation;
-        Chromosome[] nextPopulation;
-        bool[] markers = { false,false,false,false,false,false,false};
-        
-        static Random rnd;
-
         public InitialData Data { get; set; }
+        public int MaxPop { get; set; } = 50;
+        public int MaxItemCost { get; set; } = 100;
+        public int CategoriesCount { get; set; } = 7;
         public int Capacity
         {
             set
             {
-                if(value >= MIN_CAPACITY)
-                {
-                    capacity = value;
-                }
+                if (value > 0)
+                    _capacity = value;
                 else
-                {
-                    capacity = MIN_CAPACITY;
-                }
+                    _capacity = 1;
             }
-            get
-            {
-                return capacity;
-            }
+            get => _capacity;
         }
 
-        private Algorithm() { }
-        
-        public static Algorithm Create()
+        private int _capacity = 0;
+        private int _maxItemWorth = 100;
+
+        private int _iterationCount = 500;
+        private double _crossProb = 0.3;
+        private double _mutateProb = 0.01;
+
+        private Chromosome _bestChromosome;
+        private Chromosome[] _currPopulation;
+        private Chromosome[] _nextPopulation;
+
+        public bool[] Markers { get; set; }
+
+        static Random rnd;
+
+
+        public Algorithm()
         {
-             rnd = new Random();
-             return new Algorithm();
+            rnd = new Random();
         }
 
         public List<string> Start()
         {
-            bool[] componentMarkers = { true, true, true, true, true, true, true };
-            return Start(MIN_CAPACITY,componentMarkers);
-        }
-        public List<string> Start(int capasityValue, bool[] componentMarkers)
-        {
-            capacity = capasityValue;
-            int markersCount;
-            if (markers.Length > componentMarkers.Length)
-            {
-                markersCount = componentMarkers.Length;
-            }
-            else
-            {
-                markersCount = markers.Length;
-            }
-            for(int i = 0; i < markersCount; i++)
-            {
-                markers[i] = componentMarkers[i];
-            }
-            double agefit=0;
-            BestChromosome = new Chromosome(); //особь т.е. подборка предметов
-            currPopulation = new Chromosome[MAX_POP];
-            nextPopulation = new Chromosome[MAX_POP];
+            if (Markers == null)
+                return null;
+
+            if (_capacity == 0)
+                return null;
+
+            if (Data == null)
+                return null;
+
+            double agefit = 0;
+            _bestChromosome = new Chromosome(); //особь т.е. подборка предметов
+            _currPopulation = new Chromosome[MaxPop];
+            _nextPopulation = new Chromosome[MaxPop];
 
             GenerateStartPopulation();                 // начальная популяция
-    
-            for (int j = 0; j < MAX_POP; j++)
+
+            for (int j = 0; j < MaxPop; j++)
             {
-                BestChromosome = currPopulation[j];
-                Fitness(BestChromosome);
-                            
+                _bestChromosome = _currPopulation[j];
+                Fitness(_bestChromosome);
             }
 
-            double[] fitnesses = new double[currPopulation.Length];
+            double[] fitnesses = new double[_currPopulation.Length];
             double sum = 0;
 
-            for (int iter = 0; iter < ITERATION_COUNT; iter++)
+            for (int iter = 0; iter < _iterationCount; iter++)
             {
                 sum = 0;
-                fitnesses = new double[currPopulation.Length];
+                fitnesses = new double[_currPopulation.Length];
 
                 for (int i = 0; i < fitnesses.Length; i++)      //высчитываем приспособленость
                 {
-                    fitnesses[i] = Fitness(currPopulation[i]);
+                    fitnesses[i] = Fitness(_currPopulation[i]);
 
-                    agefit += fitnesses[i];                               
+                    agefit += fitnesses[i];
 
-                    if (currPopulation[i].Fitness > BestChromosome.Fitness)
+                    if (_currPopulation[i].Fitness > _bestChromosome.Fitness)
                     {
-                        for (int j = 0; j < CATEGORIES_COUNT; j++)
-                        {
-                            BestChromosome.SetGene(j, currPopulation[i].Genes[j]);
-                        }
-                        BestChromosome.Fitness = currPopulation[i].Fitness;
+                        for (int j = 0; j < CategoriesCount; j++)
+                            _bestChromosome.SetGene(j, _currPopulation[i].Genes[j]);
+                        _bestChromosome.Fitness = _currPopulation[i].Fitness;
                     }
                     sum += fitnesses[i];
                 }
                 agefit = 0;
 
-                if (iter == ITERATION_COUNT - 1)
-                {
+                if (iter == _iterationCount - 1)
                     break;
-                }
 
-                nextPopulation = new Chromosome[MAX_POP];
+                _nextPopulation = new Chromosome[MaxPop];
 
-                for (int i = 0; i < currPopulation.Length; i += 2)      //генерация нового поколения
+                for (int i = 0; i < _currPopulation.Length; i += 2)      //генерация нового поколения
                 {
                     Chromosome one;
                     Chromosome two;
                     while (true)
                     {
-                        one = Select(currPopulation, fitnesses, sum);
-                        two = Select(currPopulation, fitnesses, sum);
+                        one = Select(_currPopulation, fitnesses, sum);
+                        two = Select(_currPopulation, fitnesses, sum);
                         if (one != two) break;
                     }
 
                     double rand = rnd.NextDouble();
-                    if (rand <= CROSSOVER_PROPOBILITY)
-                    {
+                    if (rand <= _crossProb)
                         Crossover(ref one, ref two);
-                    }
 
-                    Mutate(ref one, MUTATE_PROPOBILITY);
-                    Mutate(ref two, MUTATE_PROPOBILITY);
+                    Mutate(ref one, _mutateProb);
+                    Mutate(ref two, _mutateProb);
 
-                    nextPopulation[i] = new Chromosome();
-                    nextPopulation[i + 1] = new Chromosome();
-                    nextPopulation[i] = one;
-                    nextPopulation[i + 1] = two;
+                    _nextPopulation[i] = new Chromosome();
+                    _nextPopulation[i + 1] = new Chromosome();
+                    _nextPopulation[i] = one;
+                    _nextPopulation[i + 1] = two;
                 }
 
-                for (int i = 0; i < currPopulation.Length; i++)         //замена старого поколения на новое
-                {
-                    currPopulation[i] = nextPopulation[i];
-                }
+                for (int i = 0; i < _currPopulation.Length; i++)         //замена старого поколения на новое
+                    _currPopulation[i] = _nextPopulation[i];
             }
             return GetBestAnswer();
         }
@@ -159,51 +128,39 @@ namespace Knapsack_Problem__cmd_
         private void Mutate(ref Chromosome chromosome, double probability)      //мутация
         {
             double rand;
-            for (int i = 0; i < CATEGORIES_COUNT; i++)
-            {
+            for (int i = 0; i < CategoriesCount; i++)
                 if (chromosome.Genes[i] >= 0)
                 {
                     rand = rnd.NextDouble();
                     if (rand < probability)
-                    {
-                        chromosome.Genes[i] = rnd.Next(0, Data.categorys[i].Count);
-                    }
+                        chromosome.Genes[i] = rnd.Next(0, Data.Category[i].Count);
                 }
-            }
         }
 
         private void Crossover(ref Chromosome first, ref Chromosome second)         //кросовер
         {
-            int randPos = rnd.Next(0, CATEGORIES_COUNT);
+            int randPos = rnd.Next(0, CategoriesCount);
             for (int i = 0; i < randPos; i++)
             {
-                    int temp = first.Genes[i];
-                    first.Genes[i] = second.Genes[i];
-                    second.Genes[i] = temp;
+                int temp = first.Genes[i];
+                first.Genes[i] = second.Genes[i];
+                second.Genes[i] = temp;
             }
         }
 
         private Chromosome Select(Chromosome[] population, double[] fitnesses, double sum)      //выбор генов из популяции
         {
             if (sum == 0)
-            {
                 foreach (double fit in fitnesses)
-                {
                     sum += fit;
-                }
-            }
 
             double[] tempFit = new double[fitnesses.Length];
             for (int i = 0; i < tempFit.Length; i++)
-            {
-                tempFit[i] = fitnesses[i]/sum;
-            }
+                tempFit[i] = fitnesses[i] / sum;
 
             Chromosome[] tempPop = new Chromosome[population.Length];
             for (int i = 0; i < tempPop.Length; i++)
-            {
                 tempPop[i] = population[i];
-            }
 
             Array.Sort(tempFit, tempPop);
 
@@ -224,10 +181,8 @@ namespace Knapsack_Problem__cmd_
                     if (accumFit[i] > val)
                     {
                         Chromosome c = new Chromosome();
-                        for (int j = 0; j < CATEGORIES_COUNT; j++)
-                        {
+                        for (int j = 0; j < CategoriesCount; j++)
                             c.AddGene(tempPop[i].GetGene(j));
-                        }
                         return c;
                     }
                 }
@@ -240,48 +195,43 @@ namespace Knapsack_Problem__cmd_
             double capacitySum = 0;
             int index;
             List<Item> category;
-            for (int i=0; i< chromosome.Genes.Count;i++)
+            for (int i = 0; i < chromosome.Genes.Count; i++)
             {
-                category = Data.categorys[i];
+                category = Data.Category[i];
                 index = chromosome.Genes[i];
                 if (index >= 0)
                 {
-                    sum += category[index].ItemWorth * (1 - category[index].ItemCost / MAX_ITEM_COST);
-                    capacitySum += category[index].ItemCost;
+                    sum += category[index].Worth * (1 - category[index].Cost / MaxItemCost);
+                    capacitySum += category[index].Cost;
                 }
             }
 
             double k;
-            if (capacitySum > capacity)
-            {
-                k = capacity / capacitySum ;
-            }
+            if (capacitySum > _capacity)
+                k = _capacity / capacitySum;
             else
-            {
                 k = 1;
-            }
 
-            return chromosome.Fitness = sum * k * k * k/CATEGORIES_COUNT;
+            return chromosome.Fitness = sum * k * k * k / CategoriesCount;
         }
 
         private bool GenerateStartPopulation()
         {
             try
             {
-                for (int i = 0; i < currPopulation.Length; i++)
+                for (int i = 0; i < _currPopulation.Length; i++)
                 {
-                    currPopulation[i] = new Chromosome();
+                    _currPopulation[i] = new Chromosome();
 
-                    for(int j = 0; j < markers.Length; j++)              // генерируем CATEGORIES_COUNT генов
+                    for (int j = 0; j < Markers.Length; j++)              // генерируем CATEGORIES_COUNT генов
                     {
-                        if(markers[j] == true) {
-                            int itemsInCategory = Data.categorys[j].Count;
-                            currPopulation[i].AddGene(rnd.Next(0, itemsInCategory));
+                        if (Markers[j] == true)
+                        {
+                            int itemsInCategory = Data.Category[j].Count;
+                            _currPopulation[i].AddGene(rnd.Next(0, itemsInCategory));
                         }
                         else
-                        {
-                            currPopulation[i].AddGene(-1);
-                        }
+                            _currPopulation[i].AddGene(-1);
                     }
 
                 }
@@ -297,16 +247,12 @@ namespace Knapsack_Problem__cmd_
         {
             List<string> answer = new List<string>();
             int i = 0;
-            foreach (int index in BestChromosome.Genes)
+            foreach (int index in _bestChromosome.Genes)
             {
                 if (index >= 0)
-                {
-                    answer.Add(Data.categorys[i][index].Id);
-                }
+                    answer.Add(Data.Category[i][index].Id);
                 else
-                {
                     answer.Add("-1");
-                }
                 i++;
             }
             return answer;
