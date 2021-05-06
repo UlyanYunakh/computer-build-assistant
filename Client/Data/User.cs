@@ -11,6 +11,7 @@ namespace Client.Data
         public List<int> FastCount { get; set; }
         public int? VisitCount { get; set; }
         public List<Selection> SavedCompanents { get; set; }
+        public List<Selection> CompareComponents { get; set; }
 
         public User(Blazored.LocalStorage.ILocalStorageService localStorage)
         {
@@ -24,6 +25,26 @@ namespace Client.Data
             await InitVisitCount();
             await InitFastCount();
             await InitSavedComponents();
+            await InitCompareComponents();
+        }
+
+        private async Task InitCompareComponents()
+        {
+            CompareComponents = await _localStorage.GetItemAsync<List<Selection>>("userCompareComponents");
+        
+            if(CompareComponents == null)
+            {
+                CompareComponents = new List<Selection>(2);
+                CompareComponents.Add(null);
+                CompareComponents.Add(null);
+                await SetCompareComponents(CompareComponents);
+            }
+        }
+
+        public async Task SetCompareComponents(List<Selection> components)
+        {
+            CompareComponents = components;
+            await _localStorage.SetItemAsync("userCompareComponents", components);
         }
 
         private async Task InitSavedComponents()

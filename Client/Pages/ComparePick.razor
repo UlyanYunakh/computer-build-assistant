@@ -1,0 +1,37 @@
+@page "/comparePick/{Id}"
+@inject NavigationManager navigationManager
+@inject User user
+
+<div class="container-fluid">
+    <div class="row">
+        @foreach (Selection selection in _saved)
+        {
+            <div class="col-md-4" @onclick="() => Handle(selection)">
+                <SelectionInfo Selection=selection />
+            </div>
+        }
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public string Id { get; set; }
+
+    private List<Selection> _saved;
+
+    protected override void OnInitialized()
+    {
+        _saved = user.SavedCompanents;
+    }
+
+    private async void Handle(Selection selection)
+    {
+        if(Id == "0")
+            user.CompareComponents[0] = selection;
+        else if (Id == "1")
+            user.CompareComponents[1] = selection;
+        await user.SetCompareComponents(user.CompareComponents);
+        
+        navigationManager.NavigateTo("/compare");
+    }
+}
