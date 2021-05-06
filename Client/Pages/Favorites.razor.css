@@ -54,13 +54,6 @@
     bottom: 0;
 }
 
-.hint-button {
-    width: 150px;
-    bottom: 0;
-    right: -200px;
-    cursor: pointer;
-}
-
 .hint-top {
     top: 0;
 }
