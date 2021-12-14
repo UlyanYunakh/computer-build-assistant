@@ -1,0 +1,46 @@
+<style>
+    .component {
+    width: 100%;
+    margin: 30px auto;
+    padding: 30px;
+    border: 3px solid #4C0099;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s;
+}
+
+.component:hover {
+    cursor: pointer;
+    box-shadow: 60px -16px #5B0CF9;
+}
+
+.component__title, .component__cost {
+    font-size: 24px;
+    color: #4D0099;
+}
+
+.component__desc {
+    font-size: 24px;
+}
+
+.component__cost:after {
+    content: " BYN";
+}
+</style>
+<div class="component">
+    <div class="component__title">
+        @Component.Name
+    </div>
+    <div class="component__desc">
+        @Component.Description
+    </div>
+    <div class="component__cost">
+        @Component.Cost
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public Component Component { get; set; }
+}

@@ -1,0 +1,14 @@
+.about {
+    margin: 100px 70px;
+}
+
+.about__text {
+    font-size: 48px;
+    line-height: normal;
+}
+
+.text__title {
+    font-size: 72px;
+    font-weight: bold;
+    color: #5B0CF9;
+}

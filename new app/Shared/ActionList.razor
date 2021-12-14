@@ -1,0 +1,188 @@
+@inject User user
+@inject AssistService service
+@inject NavigationManager navigationManager
+
+<style>
+    .func {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 50px;
+    border: 6px solid #4C0099;
+    border-radius: 30px;
+    transition: box-shadow 0.2s;
+}
+
+.func:hover {
+    cursor: pointer;
+    box-shadow: 60px -16px #5B0CF9;
+}
+
+.func__title {
+    font-size: 36px;
+    color: #4D0099;
+    font-weight: bolder;
+}
+
+.func__info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.info__text {
+    font-size: 24px;
+    line-height: normal;
+}
+
+.info__img {
+    height: 410px;
+}
+
+.hint {
+    background-color: #FE00B7;
+    width: 320px;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    padding: 20px;
+    margin: 10px;
+    color: white;
+}
+
+.hint__title {
+    font-size: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+</style>
+
+@if (userList != null)
+{
+    <div class="container">
+    @foreach (AssistFunc func in userList.List)
+        {
+            var info = funcInfo.Where(i => i.Id == func.Id).FirstOrDefault();
+            <div class="func" @onclick="() => Redirect(info.Page)">
+                <div class="func__title">@info.Name</div>
+                <div class="func__info row">
+                    <div class="info__text col-lg-6">
+                        @info.Description
+                    </div>
+                    <div class="info__img col-lg-6">
+                        <img src="@info.Img" alt="" width="100%">
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Загрузка</p>
+}
+
+@if (hint)
+{
+    <div class="hint">
+    <div class="hint__title">
+        Подсказка:
+        <button type="button" class="btn-close btn-close-white" @onclick="Close"></button>
+    </div>
+    <div class="hint__info">
+        Не забывайте, что у нас есть функция "@funcName".
+    </div>
+    <div class="d-grid gap-2">
+        <a href="@funcPage" class="btn btn-light btn-block">Узнать подробности</a>
+    </div>
+</div>
+}
+
+@code {
+    private List<AssistFuncInfo> funcInfo;
+    private AssistFuncList userList;
+
+    private bool hint = false;
+    private string funcName;
+    private string funcPage;
+
+    protected override void OnInitialized()
+    {
+        funcInfo = new List<AssistFuncInfo>();
+
+        funcInfo.Add(new AssistFuncInfo()
+        {
+            Id = 0,
+            Name = "Подбор Всех Комплектующих",
+            Description = @"Хотите подобрать комплектующие для нового компьютера? Воспользуйтесь этой функцией: укажите ваш бюджет и
+мы сделаем всё за вас!",
+            Img = "../img/pickUp.png",
+            Page = "/pickUp"
+        });
+        funcInfo.Add(new AssistFuncInfo()
+        {
+            Id = 1,
+            Name = "Подбор Комплектующих",
+            Description = @"Вам не хватает нескольких комплектующих? Выберите только необходимые комплектующие и укажите бюджет —
+остальное за нами.",
+            Img = "../img/pickUpModified.png",
+            Page = "/pickUpModified"
+        });
+        funcInfo.Add(new AssistFuncInfo()
+        {
+            Id = 2,
+            Name = "Сравнение комплектующих",
+            Description = @"Не можете определится с комплектующими? Сравните их и выберите понравившиеся!",
+            Img = "../img/compare.png",
+            Page = "/compare"
+        });
+        funcInfo.Add(new AssistFuncInfo()
+        {
+            Id = 3,
+            Name = "Сохранненые комплектующие",
+            Description = @"Просмотрите сохраненные комплектующие. Если не можете определится, то добавьте их в сравнение и
+перейдите в ""Сравнение комплектующих""",
+            Img = "../img/favorites.png",
+            Page = "/favorites"
+        });
+    }
+
+
+    protected override async void OnAfterRender(bool isFirst)
+    {
+        if (isFirst)
+        {
+            userList = user.UserList;
+
+            StateHasChanged();
+
+            await service.IncreaseUserVisitCount();
+
+            await Hint();
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task Hint()
+    {
+        var id = await service.GetHintId();
+
+        if (id != -1)
+        {
+            var func = funcInfo.Where(i => i.Id == id).FirstOrDefault();
+            funcName = func.Name;
+            funcPage = func.Page;
+            hint = true;
+            StateHasChanged();
+        }
+    }
+
+    private void Close()
+    {
+        hint = false;
+        StateHasChanged();
+    }
+
+    private void Redirect(string page) => navigationManager.NavigateTo(page);
+}

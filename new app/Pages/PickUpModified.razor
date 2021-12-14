@@ -1,0 +1,326 @@
+@page "/pickUpModified"
+@inject User user
+@inject AssistService service
+@inject NavigationManager navigationManager
+
+<style>
+    .about {
+    margin: 70px;
+    margin-top: 0;
+}
+
+.about__text {
+    margin: 30px auto;
+    padding: 40px;
+    font-size: 24px;
+    line-height: normal;
+    color: white;
+    background-color: #4D0099;
+}
+
+.title {
+    margin: 30px 0 0 70px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.form-box {
+    max-width: 600px;
+    margin: 20px auto 80px;
+    background-color: #A29BEF;
+    padding: 30px 50px;
+}
+
+.check-label {
+    color: #4C0099;
+}
+
+::deep .form-check-input:checked {
+    background-color: #4C0099;
+    border-color: #4C0099;
+}
+
+.check-box{
+    border: #4C0099 solid 1px;
+}
+
+.box-label {
+    font-size: 24px;
+    color: #4C0099;
+}
+
+::deep .box-input {
+    border-radius: 10px;
+    font-size: 24px;
+}
+
+::deep .box-input::-webkit-outer-spin-button, ::deep .box-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+::deep .box-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.button {
+    margin: auto;
+    font-size: 24px;
+    padding: 15px 25px;
+    color: #4C0099;
+    border: #4C0099 solid 1px;
+    border-radius: 0;
+}
+
+.button-hint {
+    color: #FE00B7;
+    border: #FE00B7 solid 1px;
+}
+
+.hint {
+    font-size: 16px;
+    position: absolute;
+    padding: 10px;
+    max-width: 180px;
+    background-color: #FE00B7;
+    color: white;
+    right: -220px;
+}
+
+.hint-bottom {
+    bottom: 0;
+}
+
+.hint-button {
+    width: 150px;
+    bottom: 0;
+    right: -200px;
+    cursor: pointer;
+}
+
+.hint-top {
+    top: 0;
+}
+
+.hint::before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.hint-bottom::before {
+    bottom: 0;
+    left: -40px;
+    border-bottom: 20px solid #FE00B7;
+    border-left: 40px solid transparent;
+}
+
+.hint-top::before {
+    top: 0;
+    left: -40px;
+    border-top: 20px solid #FE00B7;
+    border-left: 40px solid transparent;
+}
+</style>
+
+<div class="container-fluid">
+
+    <div class="title">Подбор комплектующих
+        @if (func != null)
+        {
+            if (!aboutBlock && func.UserLevel == UserLevel.Beginner)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowAboutBlock">Показать описание</button>
+            }
+            else if (!aboutBlock && func.UserLevel == UserLevel.Pro)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowHelp">Показать помощь</button>
+            }
+        }
+    </div>
+
+
+    @if (aboutBlock)
+    {
+        <div class="about">
+            <div class="row about__text">
+                <div class="col-md-8">
+                    В системе описаны компонующие 7 типов. К ним относятся центральный процессор, оперативная память,
+                    хранилище данных, блок питания, материнская плата, системный блок и система
+                    охлаждения. На основе вашего
+                    буджета и выбранных комплектующих подбирается подборка с наилучшими параметрами. Результат можно будет
+                    увидеть после того,
+                    как вы введете денежный лимит и нажмете на кнопку.
+                </div>
+                <div class="col-md-4">
+                    <img src="../img/pickUpModified.png" alt="" width="100%">
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="form-box">
+        <EditForm Model="@budget" OnValidSubmit="@Handle" class=" d-flex flex-column">
+
+            <div class="mb-3">
+                <label class="form-label box-label position-relative">Комплектующие</label>
+                <div class="row check-box position-relative">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" id="item1" @bind-Value="item1"></InputCheckbox>
+                            <label class="form-check-label check-label" for="item1">
+                                Центральный процессор
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" id="item2" @bind-Value="item2"></InputCheckbox>
+                            <label class="form-check-label check-label" for="item2">
+                                Оперативная память
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" id="item3" @bind-Value="item3"></InputCheckbox>
+                            <label class="form-check-label check-label" for="item3">
+                                Хранилище данных
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" id="item4" @bind-Value="item4"></InputCheckbox>
+                            <label class="form-check-label check-label" for="item4">
+                                Блок питания
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" id="item5" @bind-Value="item5"></InputCheckbox>
+                            <label class="form-check-label check-label" for="item5">
+                                Материнская плата
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" id="item6" @bind-Value="item6"></InputCheckbox>
+                            <label class="form-check-label check-label" for="item6">
+                                Системный блок
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <InputCheckbox class="form-check-input" id="item7" @bind-Value="item7"></InputCheckbox>
+                            <label class="form-check-label check-label" for="item7">
+                                Система охлаждения
+                            </label>
+                        </div>
+                    </div>
+                    @if (hints)
+                    {
+                        <div class="hint hint-top">
+                            Выберите компаненты, которые вам нужны
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="budget" class="form-label box-label">Бюджет</label>
+                <div class="position-relative">
+                    <InputNumber class="form-control box-input" min="1" id="budget" required @bind-Value="budget">1
+                    </InputNumber>
+                    @if (hints)
+                    {
+                        <div class="hint hint-bottom">
+                            Укажите денежное ограничение, чтобы не выходить за рамки бюджета
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="position-relative mx-auto">
+                <button type="submit" class="btn button">Подобрать</button>
+                @if (hints)
+                {
+                    <div class="hint hint-top">
+                        Нажмите на кнопку после того, как заполните форму
+                    </div>
+                }
+            </div>
+
+
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private int budget;
+    private bool aboutBlock;
+    private bool hints;
+
+    private bool item1 = true;
+    private bool item2 = true;
+    private bool item3 = true;
+    private bool item4 = true;
+    private bool item5 = true;
+    private bool item6 = true;
+    private bool item7 = true;
+
+    private AssistFunc func;
+
+    private bool isFast = true;
+
+    private async void Handle()
+    {
+        string component = GetComponentString();
+        await service.IncreaseAssistFuncLevel(func, isFast);
+        navigationManager.NavigateTo($"/pickUpResult/{budget}/{component}");
+    }
+
+    private string GetComponentString()
+    {
+        string component = "";
+        component += item1 ? 1 : 0;
+        component += item2 ? 1 : 0;
+        component += item3 ? 1 : 0;
+        component += item4 ? 1 : 0;
+        component += item5 ? 1 : 0;
+        component += item6 ? 1 : 0;
+        component += item7 ? 1 : 0;
+        return component;
+    }
+
+    private void ShowHint() => hints = true;
+
+    private void ShowAboutBlock() => aboutBlock = true;
+
+    private async void ShowHelp()
+    {
+        aboutBlock = true;
+        hints = true;
+        isFast = false;
+        await service.UpdateAssistFuncLevel(func, UserLevel.Beginner);
+    }
+
+    protected override async void OnAfterRender(bool isFirst)
+    {
+        if (isFirst)
+        {
+            func = service.GetAssistFunc(1);
+
+            StateHasChanged();
+
+            if (func.UserLevel == UserLevel.New)
+            {
+                aboutBlock = true;
+                hints = true;
+            }
+            else if (func.UserLevel == UserLevel.Beginner)
+            {
+                await Task.Delay(8000);
+                isFast = false;
+                ShowHint();
+            }
+
+            StateHasChanged();
+        }
+    }
+}

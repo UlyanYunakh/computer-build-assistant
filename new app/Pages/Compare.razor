@@ -1,0 +1,205 @@
+@page "/compare"
+@inject User user
+@inject AssistService service
+@inject NavigationManager navigationManager
+
+<style>
+    .title {
+    margin: 70px 0 0 70px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.title_no-margin {
+    margin-left: 10px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.about {
+    margin: 70px;
+    margin-top: 0;
+}
+
+.about__text {
+    margin: 30px auto;
+    padding: 40px;
+    font-size: 24px;
+    line-height: normal;
+    color: white;
+    background-color: #4D0099;
+}
+
+.button {
+    margin: auto;
+    font-size: 24px;
+    padding: 15px 25px;
+    color: #4C0099;
+    border: #4C0099 solid 1px;
+    border-radius: 0;
+}
+
+.button-hint {
+    color: #FE00B7;
+    border: #FE00B7 solid 1px;
+}
+
+.button_delete {
+    color: #ffffff;
+    border: #ffffff solid 1px;
+    background-color: #c40353;
+}
+
+.hint {
+    font-size: 16px;
+    padding: 10px;
+    max-width: 180px;
+    background-color: #FE00B7;
+    color: white;
+}
+</style>
+
+<div class="container-fluid">
+    <div class="title">
+        Сравнение комплектующих
+        @if (_func != null)
+        {
+            if (!_aboutBlock && _func.UserLevel == UserLevel.Beginner)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowAboutBlock">Показать описание</button>
+            }
+            else if (!_aboutBlock && _func.UserLevel == UserLevel.Pro)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowHelp">Показать помощь</button>
+            }
+        }
+    </div>
+    @if (_aboutBlock)
+    {
+        <div class="about">
+            <div class="row about__text">
+                <div class="col-md-8">
+                    Сравнивайте ваши подборки и выберите самую подходящую для вас. Для того, чтобы сравнивать подборки у вас
+                    должны быть сохраненные подборки. Если у вас их нет, воспользуйтесь соответствующей функцией. Добавляйте
+                    в сравнение ваши подборки и выбирайте лучшие.
+                </div>
+                <div class="col-md-4">
+                    <img src="../img/compare.png" alt="" width="100%">
+                </div>
+            </div>
+        </div>
+    }
+    <div class="row my-5">
+        <div class="col-md-12">
+            @if (_hints && (_compare[0] == null || _compare[1] == null))
+            {
+                <div class="hint mx-auto position-relative">
+                    Выберите подборки для сравнения
+                </div>
+            }
+        </div>
+        <div class="col-md-6 d-flex flex-column aligh-item-center">
+            @if (_compare[0] == null)
+            {
+                <button type="button" class="btn button" @onclick="() => SetCompare(0)">Добавить подборку в
+                    сравнение</button>
+            }
+            else
+            {
+                <div class="title_no-margin mx-auto">@_compare[0].Name</div>
+            }
+        </div>
+        <div class="col-md-6 d-flex flex-column aligh-item-center">
+            @if (_compare[1] == null)
+            {
+                <button type="button" class="btn button" @onclick="() => SetCompare(1)">Добавить подборку в
+                    сравнение</button>
+            }
+            else
+            {
+                <div class="title_no-margin mx-auto">@_compare[1].Name</div>
+            }
+        </div>
+        <div class="col-md-4 offset-md-1 d-flex flex-column aligh-item-center">
+            @if (_compare[0] != null)
+            {
+                <ComponentsList Selection=_compare[0] />
+                <button type="button" class="btn button button_delete" @onclick="() => Delete(0)">Удалить из
+                    сравнения</button>
+            }
+        </div>
+        <div class="col-md-4 offset-md-2 d-flex flex-column aligh-item-center">
+            @if (_compare[1] != null)
+            {
+                <ComponentsList Selection=_compare[1] />
+                <button type="button" class="btn button button_delete" @onclick="() => Delete(1)">Удалить из
+                    сравнения</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Selection> _compare;
+    private bool _hints;
+    private bool _aboutBlock;
+    private bool _isFast = true;
+    private AssistFunc _func;
+
+    protected override async void OnInitialized()
+    {
+        _compare = user.CompareComponents;
+        await service.UpdateLocalUserListOrder(2);
+    }
+
+    protected override async void OnAfterRender(bool isFirst)
+    {
+        if (isFirst)
+        {
+            _func = service.GetAssistFunc(2);
+
+            StateHasChanged();
+
+            if (_func.UserLevel == UserLevel.New)
+            {
+                _aboutBlock = true;
+                _hints = true;
+            }
+            else if (_func.UserLevel == UserLevel.Beginner)
+            {
+                await Task.Delay(10000);
+                _isFast = false;
+                ShowHint();
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async void SetCompare(int id)
+    {
+        await service.IncreaseAssistFuncLevel(_func, _isFast);
+        navigationManager.NavigateTo($"/comparePick/{id}");
+    }
+
+    private async void Delete(int id)
+    {
+        user.CompareComponents[id] = null;
+        await service.IncreaseAssistFuncLevel(_func, _isFast);
+        await user.SetCompareComponents(user.CompareComponents);
+    }
+
+    private void ShowHint() => _hints = true;
+
+    private void ShowAboutBlock() => _aboutBlock = true;
+
+    private async void ShowHelp()
+    {
+        _aboutBlock = true;
+        _hints = true;
+        _isFast = false;
+        await service.UpdateAssistFuncLevel(_func, UserLevel.Beginner);
+    }
+}

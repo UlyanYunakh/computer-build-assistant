@@ -1,0 +1,36 @@
+@page "/"
+@inject NavigationManager NavigationManager
+@inject User user
+@inject AssistService service
+
+<style>
+    .about {
+    margin: 100px 70px;
+}
+
+.about__text {
+    font-size: 48px;
+    line-height: normal;
+}
+
+.text__title {
+    font-size: 72px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+</style>
+
+<div class="d-flex flex-column">
+
+    <div class="container-fluid">
+        <div class="about">
+            <div class="about__text">
+                <div class="text__title">Computer Build Assistant</div>
+                Эта система поможет подобрать вам компаненты для вашего компьютера.
+            </div>
+        </div>
+    </div>
+
+    <ActionList />
+
+</div>

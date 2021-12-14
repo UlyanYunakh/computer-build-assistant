@@ -1,0 +1,206 @@
+@page "/favorites"
+@inject User user
+@inject AssistService service
+@inject NavigationManager navigationManager
+
+<style>
+    .title {
+    margin: 70px 0 0 70px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.title_no-margin {
+    margin-left: 10px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.about {
+    margin: 70px;
+    margin-top: 0;
+}
+
+.about__text {
+    margin: 30px auto;
+    padding: 40px;
+    font-size: 24px;
+    line-height: normal;
+    color: white;
+    background-color: #4D0099;
+}
+
+.button {
+    margin: auto;
+    font-size: 24px;
+    padding: 15px 25px;
+    color: #4C0099;
+    border: #4C0099 solid 1px;
+    border-radius: 0;
+}
+
+.button-hint {
+    color: #FE00B7;
+    border: #FE00B7 solid 1px;
+}
+
+.hint {
+    font-size: 16px;
+    position: absolute;
+    padding: 10px;
+    max-width: 180px;
+    background-color: #FE00B7;
+    color: white;
+    right: -220px;
+}
+
+.hint-bottom {
+    bottom: 0;
+}
+
+.hint-top {
+    top: 0;
+}
+
+.hint::before {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+.hint-bottom::before {
+    bottom: 0;
+    left: -40px;
+    border-bottom: 20px solid #FE00B7;
+    border-left: 40px solid transparent;
+}
+
+.hint-top::before {
+    top: 0;
+    left: -40px;
+    border-top: 20px solid #FE00B7;
+    border-left: 40px solid transparent;
+}
+</style>
+
+<div class="container-fluid">
+    <div class="title">
+        Сохраненные комплектующие
+        @if (_func != null)
+        {
+            <span class="position-relative">
+                @if (_hints && _aboutBlock && _saved.Count == 0)
+                {
+                    <div class="hint hint-bottom">
+                        Сохраните подборку, после чего вернитесь на эту страницу
+                    </div>
+                }
+            </span>
+            if (!_aboutBlock && _func.UserLevel == UserLevel.Beginner)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowAboutBlock">Показать описание</button>
+            }
+            else if (!_aboutBlock && _func.UserLevel == UserLevel.Pro)
+            {
+                <button type="button" class="btn button button-hint" @onclick="ShowHelp">Показать помощь</button>
+            }
+        }
+    </div>
+    @if (_aboutBlock)
+    {
+        <div class="about">
+            <div class="row about__text">
+                <div class="col-md-8">
+                    Ваши сохраненные комплектующие будут храниться тут. Каждую предложенную подборку вы можете сохранить,
+                    воспользовавшись кнопкой на странице с результатом. После сохранения вы сможете найти подборку тут и
+                    просмотреть её. Так вы можете сравнивать сохраненные подборки. Для этого воспользуйтесь соответствующей
+                    функцией.
+                </div>
+                <div class="col-md-4">
+                    <img src="../img/favorites.png" alt="" width="100%">
+                </div>
+            </div>
+        </div>
+    }
+    @if (_saved.Count != 0)
+    {
+        <div class="row m-5">
+            <div class="title_no-margin">
+                Ваши подборки:
+                <span class="position-relative">
+                    @if (_hints)
+                    {
+                        <div class="hint hint-bottom">
+                            Для просмотра выберите подборку
+                        </div>
+                    }
+                </span>
+            </div>
+            @foreach (Selection selection in _saved)
+            {
+                <div class="col-md-4" @onclick="() => Handle(selection)">
+                    <SelectionInfo Selection=selection />
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Selection> _saved;
+    private bool _hints;
+    private bool _aboutBlock;
+    private bool _isFast = true;
+    private AssistFunc _func;
+
+    protected override async void OnInitialized()
+    {
+        _saved = user.SavedCompanents;
+        await service.UpdateLocalUserListOrder(3);
+    }
+
+    protected override async void OnAfterRender(bool isFirst)
+    {
+        if (isFirst)
+        {
+            _func = service.GetAssistFunc(3);
+
+            StateHasChanged();
+
+            if (_func.UserLevel == UserLevel.New)
+            {
+                _aboutBlock = true;
+                _hints = true;
+            }
+            else if (_func.UserLevel == UserLevel.Beginner)
+            {
+                await Task.Delay(10000);
+                _isFast = false;
+                ShowHint();
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async void Handle(Selection selection)
+    {
+        await service.IncreaseAssistFuncLevel(_func, _isFast);
+        navigationManager.NavigateTo($"/favorites/{selection.Name}");
+    }
+
+    private void ShowHint() => _hints = true;
+
+    private void ShowAboutBlock() => _aboutBlock = true;
+
+    private async void ShowHelp()
+    {
+        _aboutBlock = true;
+        _hints = true;
+        _isFast = false;
+        await service.UpdateAssistFuncLevel(_func, UserLevel.Beginner);
+    }
+}

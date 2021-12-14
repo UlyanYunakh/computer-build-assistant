@@ -1,0 +1,67 @@
+@page "/favorites/{Name}"
+@inject User user
+@inject NavigationManager navigationManager
+
+<style>
+    .title {
+    margin: 70px 0 0 70px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.button {
+    margin: auto;
+    font-size: 24px;
+    padding: 15px 25px;
+    color: #4C0099;
+    border: #4C0099 solid 1px;
+    border-radius: 0;
+}
+
+.button_delete {
+    color: #ffffff;
+    border: #ffffff solid 1px;
+    background-color: #c40353;
+}
+</style>
+
+<div class="container-fluid">
+    <div class="title">@_selection.Name</div>
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <ComponentsList Selection=_selection />
+        </div>
+        <div class="d-flex justify-content-between mb-5">
+            <button class="btn button" @onclick="Redirect">Вернуться к сохраненные</button>
+            <button class="btn button button_delete" @onclick="Handle">Удалить из сохраненные</button>
+        </div>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public string Name { get; set; }
+
+    private Selection _selection;
+
+    protected override void OnInitialized()
+    {
+        _selection = user.SavedCompanents.Where(c => c.Name == Name).FirstOrDefault();
+    }
+
+    private void Handle()
+    {
+        for(int i = 0; i < user.SavedCompanents.Count; i++)
+        {
+            if(user.SavedCompanents[i].Name == _selection.Name)
+                user.SavedCompanents.Remove(_selection);
+        }
+        Redirect();
+    }
+
+    private void Redirect()
+    {
+        navigationManager.NavigateTo("/favorites");
+    }
+}

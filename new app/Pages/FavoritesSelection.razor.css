@@ -1,0 +1,21 @@
+.title {
+    margin: 70px 0 0 70px;
+    font-size: 48px;
+    font-weight: bold;
+    color: #5B0CF9;
+}
+
+.button {
+    margin: auto;
+    font-size: 24px;
+    padding: 15px 25px;
+    color: #4C0099;
+    border: #4C0099 solid 1px;
+    border-radius: 0;
+}
+
+.button_delete {
+    color: #ffffff;
+    border: #ffffff solid 1px;
+    background-color: #c40353;
+}
